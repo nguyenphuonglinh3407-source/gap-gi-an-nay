@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gắp Gì Ăn Nấy - Máy Gắp Thú Bông Ăn Trưa Hài Hước</title>
+  <meta name="description" content="Web app gợi ý món ăn ngẫu nhiên theo ngân sách dạng máy gắp thú bông pastel hài hước, giải cứu mọi cơn đau đầu vì câu hỏi 'Trưa nay ăn gì?'.">
+
+  <!-- Google Fonts: Baloo 2 cho tiêu đề & Nunito cho nội dung -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕹️</text></svg>">
+</head>
+<body>
+  <!-- Header chính -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      <div class="logo-group">
+        <span class="logo-icon" aria-hidden="true">🕹️</span>
+        <div class="logo-text">
+          <h1 class="app-title">Gắp Gì Ăn Nấy</h1>
+          <p class="app-tagline">Máy gắp thú bông ẩm thực • Chữa dứt điểm bệnh "Ăn gì cũng được"</p>
+        </div>
+      </div>
+      <!-- Tab điều hướng máy gắp / kho món -->
+      <nav class="nav-tabs" aria-label="Điều hướng trang">
+        <button id="nav-machine" class="nav-btn active" aria-selected="true" role="tab">
+          <span class="icon" aria-hidden="true">🎰</span> Máy Gắp
+        </button>
+        <button id="nav-catalog" class="nav-btn" aria-selected="false" role="tab">
+          <span class="icon" aria-hidden="true">📖</span> Kho Món (<span id="total-dishes-badge">0</span>)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content" id="main-content" role="main">
+    
+    <!-- SECTION 1: MÁY GẮP THÚ BÔNG (CHÍNH) -->
+    <section id="machine-view" class="view-section active" aria-labelledby="machine-heading">
+      <h2 id="machine-heading" class="sr-only">Khu vực máy gắp thức ăn</h2>
+
+      <!-- Bảng điều khiển bộ lọc (Filters & Controls) -->
+      <aside class="control-panel" aria-label="Bảng chọn ngân sách và sở thích">
+        <div class="panel-card">
+          <h3 class="panel-title">
+            <span class="title-icon" aria-hidden="true">🎯</span>
+            1. Bạn muốn ăn/uống gì?
+          </h3>
+          <div class="category-chips" role="radiogroup" aria-label="Chọn nhóm món ăn">
+            <button type="button" class="chip active" data-category="all" role="radio" aria-checked="true">
+              <span class="chip-emoji" aria-hidden="true">✨</span> Tất cả
+            </button>
+            <button type="button" class="chip" data-category="lunch" role="radio" aria-checked="false">
+              <span class="chip-emoji" aria-hidden="true">🍛</span> Ăn trưa
+            </button>
+            <button type="button" class="chip" data-category="drink" role="radio" aria-checked="false">
+              <span class="chip-emoji" aria-hidden="true">🧋</span> Đồ uống
+            </button>
+            <button type="button" class="chip" data-category="snack" role="radio" aria-checked="false">
+              <span class="chip-emoji" aria-hidden="true">🍟</span> Ăn vặt
+            </button>
+            <button type="button" class="chip" data-category="party" role="radio" aria-checked="false">
+              <span class="chip-emoji" aria-hidden="true">🍻</span> Món nhậu
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-title-row">
+            <h3 class="panel-title">
+              <span class="title-icon" aria-hidden="true">💰</span>
+              2. Ngân sách tối đa: <span id="budget-display" class="highlight-budget">Tất cả (Không giới hạn)</span>
+            </h3>
+          </div>
+
+          <!-- Nút chọn nhanh ngân sách -->
+          <div class="budget-presets" role="group" aria-label="Chọn nhanh ngân sách">
+            <button type="button" class="preset-btn" data-budget="20000">20k</button>
+            <button type="button" class="preset-btn" data-budget="30000">30k</button>
+            <button type="button" class="preset-btn" data-budget="50000">50k</button>
+            <button type="button" class="preset-btn" data-budget="80000">80k</button>
+            <button type="button" class="preset-btn" data-budget="120000">120k</button>
+            <button type="button" class="preset-btn active" data-budget="999999">200k+</button>
+          </div>
+
+          <!-- Slider ngân sách trực quan -->
+          <div class="slider-wrapper">
+            <input type="range" id="budget-slider" min="15000" max="250000" step="5000" value="250000" 
+                   aria-label="Thanh trượt chọn ngân sách từ 15k đến 250k" 
+                   class="custom-slider">
+            <div class="slider-ticks" aria-hidden="true">
+              <span>15k</span>
+              <span>50k</span>
+              <span>100k</span>
+              <span>150k</span>
+              <span>250k+</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card toggle-card">
+          <label class="toggle-container" for="veg-switch">
+            <div class="toggle-info">
+              <span class="toggle-emoji" aria-hidden="true">🥗</span>
+              <div>
+                <span class="toggle-label">Hôm nay ăn chay</span>
+                <span class="toggle-hint">Tự động loại bỏ thịt, tôm, cá để tâm hồn thanh tịnh</span>
+              </div>
+            </div>
+            <div class="switch-box">
+              <input type="checkbox" id="veg-switch" role="switch" aria-checked="false">
+              <span class="slider round"></span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Tình trạng bộ lọc (hiển thị số món khả dụng) -->
+        <div class="pool-status" aria-live="polite">
+          <span class="pool-icon" aria-hidden="true">🎲</span>
+          Đang có <strong id="matching-count">0</strong> món trong máy gắp sẵn sàng phục vụ bạn!
+        </div>
+      </aside>
+
+      <!-- KHUNG MÁY GẮP THÚ BÔNG (CLAW MACHINE) -->
+      <section class="machine-wrapper" aria-label="Mô hình máy gắp thức ăn pastel">
+        <div class="claw-machine" id="claw-machine">
+          <!-- Mái vòm máy gắp -->
+          <div class="machine-roof">
+            <div class="roof-lights" aria-hidden="true">
+              <span class="light red"></span>
+              <span class="light yellow"></span>
+              <span class="light green"></span>
+              <span class="light purple"></span>
+              <span class="light pink"></span>
+            </div>
+            <div class="roof-marquee">
+              <span class="marquee-icon">🕹️</span>
+              <span class="marquee-text">GẮP LÀ TRÚNG • ĂN LÀ MÊ</span>
+              <span class="marquee-icon">✨</span>
+            </div>
+          </div>
+
+          <!-- Buồng kính chứa thú bông / món ăn -->
+          <div class="machine-glass" id="machine-glass" aria-label="Kính nhìn bên trong máy">
+            <!-- Ray trượt ngang và Càng gắp -->
+            <div class="claw-rail" id="claw-rail" aria-hidden="true">
+              <div class="claw-assembly" id="claw-assembly">
+                <div class="claw-cable" id="claw-cable"></div>
+                <div class="claw-head">
+                  <div class="claw-face">◕‿◕</div>
+                </div>
+                <div class="claw-arms">
+                  <div class="claw-arm left"></div>
+                  <div class="claw-arm middle"></div>
+                  <div class="claw-arm right"></div>
+                </div>
+                <!-- Món đang bị gắp (ẩn mặc định) -->
+                <div class="claw-held-item" id="claw-held-item" style="display: none;">
+                  <span class="held-emoji">🍲</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Khay xả quà bên trong góc buồng kính -->
+            <div class="chute-hole" aria-hidden="true">
+              <span class="chute-label">LỖ XẢ 🎁</span>
+            </div>
+
+            <!-- Các quả bông món ăn nằm dưới đáy buồng kính -->
+            <div class="plushie-pit" id="plushie-pit" aria-hidden="true">
+              <!-- Được sinh động bằng JS -->
+            </div>
+
+            <!-- Lớp kính bóng phản chiếu ánh sáng -->
+            <div class="glass-reflection" aria-hidden="true"></div>
+          </div>
+
+          <!-- Bảng điều khiển máy & Khay nhận đồ -->
+          <div class="machine-base">
+            <div class="control-deck">
+              <div class="joystick-wrap" aria-hidden="true">
+                <div class="joystick" id="machine-joystick">
+                  <div class="stick-knob"></div>
+                  <div class="stick-shaft"></div>
+                </div>
+                <span class="joystick-hint">Cần gạt</span>
+              </div>
+
+              <!-- NÚT GẮP TO BỰ -->
+              <div class="action-wrap">
+                <button type="button" id="btn-claw" class="btn-claw-huge" aria-label="Bấm để bắt đầu gắp món ăn ngẫu nhiên">
+                  <span class="claw-btn-inner">
+                    <span class="btn-emoji" aria-hidden="true">🎯</span>
+                    <span class="btn-text">GẮP!</span>
+                  </span>
+                  <span class="btn-shadow"></span>
+                </button>
+                <div class="action-subtext">Nhấn phím Space hoặc bấm nút</div>
+              </div>
+
+              <div class="coin-slot-wrap" aria-hidden="true">
+                <div class="coin-slot">
+                  <span class="coin-icon">🪙</span>
+                  <span class="coin-text">FREE</span>
+                </div>
+                <span class="coin-hint">Miễn phí</span>
+              </div>
+            </div>
+
+            <!-- Khay nhận món quà mở ra -->
+            <div class="prize-chute-door" id="prize-chute-door">
+              <div class="chute-door-flap">
+                <span>KHAY NHẬN MÓN ĂN</span>
+                <span class="down-arrow">▼</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bảng thông báo độ hiếm tóm tắt -->
+        <div class="rarity-legend-bar" aria-label="Bảng giải thích hệ thống độ hiếm">
+          <div class="legend-title">Hệ thống độ hiếm:</div>
+          <div class="legend-items">
+            <span class="legend-pill binh-dan">🌱 Bình dân (&le;30k)</span>
+            <span class="legend-pill ngon-bat-ngo">✨ Ngon bất ngờ (&le;50k)</span>
+            <span class="legend-pill hoi-sang-nha">💖 Hơi sang nha (&le;80k)</span>
+            <span class="legend-pill vi-khoc-thet">💸 Ví khóc thét (&le;140k)</span>
+            <span class="legend-pill luong-ve">👑 Lương về mới dám (&gt;140k)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- LỊCH SỬ 10 LẦN GẮP GẦN NHẤT -->
+      <section class="history-section" aria-labelledby="history-heading">
+        <div class="history-header">
+          <h3 id="history-heading" class="history-title">
+            <span class="icon" aria-hidden="true">📜</span>
+            Lịch sử 10 lần gắp gần nhất
+          </h3>
+          <button type="button" id="btn-clear-history" class="btn-secondary btn-sm" aria-label="Xóa toàn bộ lịch sử gắp">
+            <span class="icon" aria-hidden="true">🗑️</span> Xóa lịch sử
+          </button>
+        </div>
+        <div id="history-container" class="history-list" aria-live="polite">
+          <!-- Hiển thị bằng JS -->
+          <div class="history-empty">Chưa có món nào được gắp. Hãy thử bấm "GẮP!" ngay nhé! 🍜</div>
+        </div>
+      </section>
+    </section>
+
+    <!-- SECTION 2: KHO MÓN (CATALOG VIEW) -->
+    <section id="catalog-view" class="view-section" aria-labelledby="catalog-heading" style="display: none;">
+      <div class="catalog-header">
+        <div class="catalog-title-group">
+          <h2 id="catalog-heading" class="section-title">
+            <span class="icon" aria-hidden="true">📖</span>
+            Kho Món Ăn "Gắp Gì Ăn Nấy"
+          </h2>
+          <p class="section-desc">Toàn bộ kho tàng ẩm thực phong phú với giá cả chuẩn sinh viên - văn phòng.</p>
+        </div>
+      </div>
+
+      <!-- Bộ lọc trong kho món -->
+      <div class="catalog-toolbar">
+        <div class="catalog-filter-chips" role="group" aria-label="Bộ lọc kho món">
+          <button type="button" class="cat-filter-btn active" data-cat="all">Tất cả</button>
+          <button type="button" class="cat-filter-btn" data-cat="lunch">Ăn trưa (32)</button>
+          <button type="button" class="cat-filter-btn" data-cat="drink">Đồ uống (22)</button>
+          <button type="button" class="cat-filter-btn" data-cat="snack">Ăn vặt (18)</button>
+          <button type="button" class="cat-filter-btn" data-cat="party">Món nhậu (18)</button>
+          <button type="button" class="cat-filter-btn veg-filter" data-cat="veg">Chỉ món chay (47)</button>
+        </div>
+
+        <div class="catalog-search-wrap">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input type="text" id="catalog-search-input" placeholder="Tìm tên món (phở, cơm, trà sữa...)" 
+                 aria-label="Tìm kiếm món ăn theo từ khóa">
+        </div>
+      </div>
+
+      <div class="catalog-stats">
+        Hiển thị <span id="catalog-count-badge" class="stats-badge">0</span> món ăn phù hợp
+      </div>
+
+      <!-- Danh sách thẻ món ăn -->
+      <div class="dish-grid" id="dish-grid" role="region" aria-label="Danh sách thẻ món ăn">
+        <!-- Được vẽ bằng JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL KẾT QUẢ QUAY THƯỞNG: VIÊN NANG GACHA BUNG MỞ -->
+  <div id="result-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-dish-name" style="display: none;">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="capsule-result-container">
+      
+      <!-- Hoạt ảnh viên nang mở ra -->
+      <div class="capsule-shell-top" id="capsule-top" aria-hidden="true">
+        <div class="capsule-gloss"></div>
+      </div>
+
+      <div class="result-card" id="result-card">
+        <button type="button" class="modal-close-btn" id="btn-modal-close" aria-label="Đóng bảng kết quả">✕</button>
+        
+        <div class="result-header">
+          <span class="congrats-tag">🎉 BẠN ĐÃ GẮP TRÚNG!</span>
+          <div class="rarity-badge" id="modal-rarity-badge">
+            <span id="modal-rarity-icon">✨</span>
+            <span id="modal-rarity-name">Ngon bất ngờ</span>
+            <span id="modal-rarity-stars">★★☆☆☆</span>
+          </div>
+        </div>
+
+        <div class="result-body">
+          <div class="dish-avatar-circle" id="modal-avatar-circle">
+            <span class="dish-huge-emoji" id="modal-dish-emoji">🍜</span>
+          </div>
+          
+          <h3 class="dish-modal-title" id="modal-dish-name">Phở bò tái nạm</h3>
+          
+          <div class="dish-meta-tags">
+            <span class="meta-tag price-tag" id="modal-dish-price">55.000 đ</span>
+            <span class="meta-tag category-tag" id="modal-dish-category">Ăn trưa</span>
+            <span class="meta-tag veg-tag" id="modal-dish-veg" style="display: none;">🌱 Món chay</span>
+          </div>
+
+          <div class="dish-comment-bubble" id="modal-dish-comment">
+            "Hương vị đậm đà thơm phức, húp một ngụm tỉnh cả người!"
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-action btn-find-maps" id="btn-find-maps">
+            <span class="icon" aria-hidden="true">📍</span> Tìm quán gần tôi trên Google Maps
+          </a>
+          <button type="button" class="btn-action btn-regrap" id="btn-regrap">
+            <span class="icon" aria-hidden="true">🔄</span> Gắp lại phát nữa!
+          </button>
+        </div>
+      </div>
+
+      <div class="capsule-shell-bottom" id="capsule-bottom" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <p class="footer-credits">
+        🎮 <strong>Gắp Gì Ăn Nấy</strong> • Bài tập môn học phi thương mại • Được làm với tình yêu ẩm thực & tiếng cười.
+      </p>
+      <p class="footer-reference">
+        💡 Ý tưởng tham khảo từ <em>truanayangi.com</em>. Giao diện, mã nguồn và dữ liệu do tác giả tự thực hiện độc lập.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts ES Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
